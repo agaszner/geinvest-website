@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // The website never writes to Firestore directly. The Cloud Function uses
+    // the Admin SDK and bypasses these rules after validating the request.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

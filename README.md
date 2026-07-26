@@ -1,0 +1,102 @@
+# Geinvest website
+
+An accessible, static marketing website for **Geinvest Kft.**, designed for GitHub Pages at `geinvestkft.com`. The form posts to a Firebase Cloud Function; it does not expose a Firebase API key, mailbox, or Firestore write permission in the browser.
+
+## Stack
+
+- **React + TypeScript + Vite** — fast, small static site.
+- **GitHub Pages + GitHub Actions** — hosting and automatic deployment on pushes to `main`.
+- **Firebase Cloud Functions + Firestore** — validated contact submissions, stored privately.
+- **Firebase Trigger Email extension** — securely emails each enquiry to Geinvest.
+- **PostHog EU** — privacy-conscious analytics, loaded only after visitor consent.
+
+## Run locally
+
+Requires Node.js 22 (use the current LTS release).
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+The contact form intentionally displays a configuration error until `VITE_CONTACT_ENDPOINT` is set. Never put `CONTACT_EMAIL` or other private credentials in `.env` for the frontend.
+
+## 1. Create and configure Firebase
+
+1. Create a Firebase project in the Firebase console. Choose the **Blaze** plan: Cloud Functions and the email extension require it. Use a project region in Europe; this project uses the `europe-west1` function region.
+2. Install the Firebase CLI and authenticate:
+
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   cp .firebaserc.example .firebaserc
+   # Edit .firebaserc and replace your-firebase-project-id.
+   ```
+
+3. Install the function dependencies and set the recipient inbox. This Firebase secret is only available to the Cloud Function at runtime.
+
+   ```bash
+   cd functions
+   npm install
+   cd ..
+   firebase functions:secrets:set CONTACT_EMAIL
+   ```
+
+4. In Firebase Extensions, install **Trigger Email** (`firebase/firestore-send-email`). Use `mail` as the collection name. Configure its SMTP connection for an inbox you control (Google Workspace, Microsoft 365, Mailgun, etc.). The extension will send a message whenever the function writes a `mail` document.
+5. Deploy the secure backend and Firestore rules:
+
+   ```bash
+   cd functions && npm run build && cd ..
+   firebase deploy --only functions,firestore:rules
+   ```
+
+6. Copy the public HTTPS URL Firebase prints for the `contact` function. It has the form:
+
+   ```text
+   https://europe-west1-YOUR_PROJECT_ID.cloudfunctions.net/contact
+   ```
+
+### Important Firebase security notes
+
+- Firestore rules deny all browser access. Only the server-side Cloud Function can create `contacts` or `mail` documents.
+- The function validates input, limits field size, requires privacy consent, only allows POSTs from `geinvestkft.com` / `www.geinvestkft.com`, and includes an invisible honeypot to reduce basic spam.
+- After the domain is live, use Firebase App Check with reCAPTCHA Enterprise and add a rate-limiting service if the form receives abuse. This is an appropriate next layer once real traffic exists.
+
+## 2. Configure PostHog
+
+1. Create a PostHog project in the EU cloud and copy its project API key.
+2. In the GitHub repository go to **Settings → Secrets and variables → Actions → Variables**.
+3. Add these repository variables (variables are correct because the PostHog key and function URL are intentionally public browser configuration):
+
+   | Variable | Value |
+   | --- | --- |
+   | `VITE_POSTHOG_KEY` | Your PostHog project API key |
+   | `VITE_CONTACT_ENDPOINT` | Your deployed Firebase function URL |
+
+PostHog does not load unless a visitor chooses “Accept analytics”. The site does not identify visitors or record form fields. Configure the PostHog project’s data region and retention policy to fit Geinvest’s privacy requirements.
+
+## 3. Publish with GitHub Pages
+
+1. Create a new GitHub repository and push this folder. The deploy workflow is triggered from a branch called `main`; if your default branch has another name, change `.github/workflows/deploy.yml` or rename the branch.
+2. In **Settings → Pages**, set **Source** to **GitHub Actions**. Push to `main`; the workflow builds and deploys the website.
+3. In **Settings → Pages → Custom domain**, enter `geinvestkft.com` and enable **Enforce HTTPS** once it is available. The `public/CNAME` file ensures deployment keeps the custom domain.
+4. At the domain registrar, point the apex domain and `www` at GitHub Pages. GitHub shows the current IP/record values for your repository; follow its displayed instructions exactly, since these can change. Add the GitHub-provided verification TXT record if requested.
+5. Wait for DNS propagation, then test both `https://geinvestkft.com` and `https://www.geinvestkft.com`. Choose one as the canonical address in GitHub Pages; GitHub redirects the other.
+
+## Before launch checklist
+
+- Replace the placeholder company claims, service descriptions, working hours, and location with Geinvest’s confirmed details.
+- Submit a real form enquiry and verify it appears in Firestore and arrives in the configured inbox.
+- Add the final legal company details, privacy contact, and data-retention period to the privacy copy after getting local legal guidance.
+- Confirm the custom domain, HTTPS, PostHog consent behavior, and mobile layout.
+- Set a budget alert in Google Cloud / Firebase and restrict who can deploy functions or edit GitHub Actions variables.
+
+## Commands
+
+```bash
+npm run dev       # develop the website
+npm run build     # production build
+npm run lint      # lint website code
+cd functions && npm run build  # compile the Firebase function
+```
