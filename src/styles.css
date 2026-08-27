@@ -12,6 +12,15 @@ footer{min-height:178px;padding:45px clamp(22px,5vw,88px);background:var(--ink);
 @media(max-width:850px){.site-header{height:72px}.menu-button{display:block;z-index:7}.nav{display:none;position:absolute;top:0;left:0;right:0;padding:92px 25px 28px;background:var(--ink);flex-direction:column;align-items:flex-start;gap:23px}.nav.open{display:flex}.hero{min-height:660px}.hero-content{padding:170px 26px 110px}.hero-facts{left:26px;right:26px;bottom:66px;gap:13px;justify-content:space-between}.hero-facts div{padding-left:8px}.hero-facts strong{font-size:11px}.hero-facts span{font-size:10px}.scroll-cue{left:26px}.section-wrap{padding:86px 25px}.intro-lead,.promise,.contact-section{grid-template-columns:1fr;gap:32px}.intro-lead{gap:23px}.offering-grid{grid-template-columns:1fr;margin-top:50px}.offering-card,.offering-card:not(:first-child){min-height:250px;padding:26px 0 29px;border-left:0}.offering-card h3{margin-top:33px}.offering-card a{bottom:29px}.promise-visual{height:320px}.promise-copy{padding:70px 25px}.contact-form{padding:25px}.form-row{grid-template-columns:1fr;gap:20px}footer{grid-template-columns:1fr 1fr;min-height:0}footer p{grid-column:1/-1}.cookie-banner{flex-wrap:wrap;gap:10px}.cookie-banner div{min-width:calc(100% - 42px)}.cookie-banner .button{margin-left:auto}}
 @media(max-width:450px){.hero-actions{align-items:flex-start;flex-direction:column;gap:20px}.hero-facts{gap:7px}.hero-facts strong{font-size:10px}.hero-facts span{max-width:70px;font-size:9px}.cookie-banner{bottom:12px;right:12px;width:calc(100vw - 24px)}.privacy-dialog{padding:35px 26px}.privacy-dialog h2{font-size:34px}}
 
+/* Contact additions. */
+.topbar-contacts{display:flex;align-items:center;gap:18px}
+.contact-email-button{margin-left:10px}
+.contact-person-card{margin-top:24px;padding:20px 21px;background:var(--warm);border:1px solid var(--line)}
+.contact-person-card h3{margin:0 0 6px;font-size:22px;letter-spacing:-.04em}
+.contact-person-card p{margin:0 0 13px;color:var(--muted);font-size:13px}
+.contact-person-card a{display:inline-flex;align-items:center;gap:8px;color:var(--orange);font-size:14px;font-weight:600}
+@media(max-width:850px){.topbar-contacts{width:100%;justify-content:space-between;gap:10px}.topbar-contacts a{font-size:10px}.contact-email-button{margin:12px 0 0}}
+
 /* Final layout overrides for the React multi-page shell. */
 .footer{display:block!important;grid-template-columns:none!important}
 .footer > .container{width:min(1180px,calc(100% - 48px));margin:0 auto}

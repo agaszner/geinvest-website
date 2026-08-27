@@ -11,7 +11,7 @@ The supplied Hungarian source material has been incorporated into the React appl
 - Original images from `assets/img/home`, `assets/img/metso`, `assets/img/mj`, and `assets/img/service`, copied to `public/assets`.
 - The source document’s manufacturer links and publication-review notes are retained on the relevant pages.
 
-Before publishing, confirm reuse permission for the supplied Metso, M&J, and ifm images with the relevant partner/manufacturer terms. Also verify the exact contractual scope of the M&J and Outotec exclusivity claims, and only publish an MFL product list when you have a primary MFL catalogue or equivalent documentation.
+Before publishing, confirm reuse permission for the supplied Metso, M&J, and ifm images with the relevant partner/manufacturer terms. Also verify the exact contractual scope of the M&J and Outotec representation claims, and only publish an MFL product list when you have a primary MFL catalogue or equivalent documentation.
 
 The added missing-brand visuals are real downloaded images, not generated placeholders: the Outotec image is from [Metso’s particle ore sorting page](https://www.metso.com/portfolio/sensor-based-ore-sorting/), and the MFL supporting crusher image is [“Mine rock crusher” on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Mine_rock_crusher.jpg). Confirm current reuse terms and retain the corresponding attribution before launch.
 
