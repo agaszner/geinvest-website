@@ -93,8 +93,8 @@ PostHog does not load unless a visitor chooses “Accept analytics”. The site 
 
 ## 3. Publish with GitHub Pages
 
-1. Create a new GitHub repository and push this folder. The deploy workflow is triggered from a branch called `main`; if your default branch has another name, change `.github/workflows/deploy.yml` or rename the branch.
-2. In **Settings → Pages**, set **Source** to **GitHub Actions**. Push to `main`; the workflow builds and deploys the website.
+1. Create a new GitHub repository and push this folder. The deploy workflow runs for pushes to `main` and `master`.
+2. In **Settings → Pages**, set **Source** to **GitHub Actions**. Push to `master` (your current branch) or `main`; the workflow builds and deploys the website.
 3. In **Settings → Pages → Custom domain**, enter `geinvestkft.com` and enable **Enforce HTTPS** once it is available. The `public/CNAME` file ensures deployment keeps the custom domain.
 4. At the domain registrar, point the apex domain and `www` at GitHub Pages. GitHub shows the current IP/record values for your repository; follow its displayed instructions exactly, since these can change. Add the GitHub-provided verification TXT record if requested.
 5. Wait for DNS propagation, then test both `https://geinvestkft.com` and `https://www.geinvestkft.com`. Choose one as the canonical address in GitHub Pages; GitHub redirects the other.
