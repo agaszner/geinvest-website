@@ -2,6 +2,21 @@
 
 An accessible, static marketing website for **Geinvest Kft.**, designed for GitHub Pages at `geinvestkft.com`. The form posts to a Firebase Cloud Function; it does not expose a Firebase API key, mailbox, or Firestore write permission in the browser.
 
+## Materials ported from `geinvest-web.zip`
+
+The supplied Hungarian source material has been incorporated into the React application rather than published as separate static HTML files:
+
+- Home messaging, company description, service list, M&J hardfacing section, retrofit section, CTA, contact details, VAT number, and footer copy.
+- React views for Márkák, Szerviz & Retrofit, Referenciák, Kapcsolat, Metso, M&J Recycling, MFL, and Outotec.
+- Original images from `assets/img/home`, `assets/img/metso`, `assets/img/mj`, and `assets/img/service`, copied to `public/assets`.
+- The source document’s manufacturer links and publication-review notes are retained on the relevant pages.
+
+Before publishing, confirm reuse permission for the supplied Metso, M&J, and ifm images with the relevant partner/manufacturer terms. Also verify the exact contractual scope of the M&J and Outotec exclusivity claims, and only publish an MFL product list when you have a primary MFL catalogue or equivalent documentation.
+
+The added missing-brand visuals are real downloaded images, not generated placeholders: the Outotec image is from [Metso’s particle ore sorting page](https://www.metso.com/portfolio/sensor-based-ore-sorting/), and the MFL supporting crusher image is [“Mine rock crusher” on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Mine_rock_crusher.jpg). Confirm current reuse terms and retain the corresponding attribution before launch.
+
+`index.html` is only Vite’s minimal application mount point; all page content and navigation are rendered by React components in `src/App.tsx`.
+
 ## Stack
 
 - **React + TypeScript + Vite** — fast, small static site.
