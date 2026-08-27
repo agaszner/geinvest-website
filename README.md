@@ -99,6 +99,10 @@ PostHog does not load unless a visitor chooses “Accept analytics”. The site 
 4. At the domain registrar, point the apex domain and `www` at GitHub Pages. GitHub shows the current IP/record values for your repository; follow its displayed instructions exactly, since these can change. Add the GitHub-provided verification TXT record if requested.
 5. Wait for DNS propagation, then test both `https://geinvestkft.com` and `https://www.geinvestkft.com`. Choose one as the canonical address in GitHub Pages; GitHub redirects the other.
 
+### If the page is blank
+
+Open `https://github.com/agaszner/geinvest-website/settings/pages` while signed in and check **Build and deployment → Source**. It must be **GitHub Actions**, not **Deploy from a branch**. The workflow builds `dist/`; publishing the repository branch directly serves the uncompiled React source and results in a blank page. After changing the source, rerun **Deploy website to GitHub Pages** from the Actions tab and open `https://agaszner.github.io/geinvest-website/` (including `/geinvest-website/`). The account root `https://agaszner.github.io/` is a different user-site address and will not serve this repository unless you create a repository named `agaszner.github.io`.
+
 ## Before launch checklist
 
 - Replace the placeholder company claims, service descriptions, working hours, and location with Geinvest’s confirmed details.
