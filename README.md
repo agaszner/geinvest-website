@@ -15,7 +15,16 @@ Before publishing, confirm reuse permission for the supplied Metso, M&J, and ifm
 
 The added missing-brand visuals are real downloaded images, not generated placeholders: the Outotec image is from [Metso’s particle ore sorting page](https://www.metso.com/portfolio/sensor-based-ore-sorting/), and the MFL supporting crusher image is [“Mine rock crusher” on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Mine_rock_crusher.jpg). Confirm current reuse terms and retain the corresponding attribution before launch.
 
-`index.html` is only Vite’s minimal application mount point; all page content and navigation are rendered by React components in `src/App.tsx`.
+The root `index.html` and the per-section entry files (for example `markak/index.html` and `szerviz/index.html`) provide crawlable metadata and real URLs. The visible page content and navigation are rendered by React components in `src/App.tsx`.
+
+## SEO és keresőbarát oldalak
+
+- A fő témák külön, megosztható URL-t kaptak: `/markak/`, `/szerviz/`, `/referenciak/`, `/kapcsolat/`, `/metso/`, `/mj-recycling/`, `/mfl/` és `/outotec/`.
+- Minden URL-hez magyar nyelvű title, description, canonical és Open Graph metaadat tartozik.
+- A kezdőoldal LocalBusiness strukturált cégadatot tartalmaz a Geinvest névvel, ikladi címmel, telefonnal és kapcsolati e-maillel.
+- A `public/robots.txt` engedélyezi a feltérképezést és a `public/sitemap.xml` fájlra mutat. Éles build után ezek itt érhetők el: `https://geinvestkft.com/robots.txt` és `https://geinvestkft.com/sitemap.xml`.
+
+Élesítés után add hozzá a domaint a [Google Search Console](https://search.google.com/search-console) felületén, végezd el a DNS-es tulajdon-ellenőrzést, majd a **Sitemaps** résznél küldd be a `https://geinvestkft.com/sitemap.xml` címet. Az URL Inspection eszközzel külön is kérhetsz indexelést az új vagy módosított oldalakra. A sitemap és az indexelési kérés jelzés a Google felé; a helyezést nem garantálják, ezért a legnagyobb hatású további lépések a saját projektfotók, konkrét referenciák, hasznos magyar nyelvű szövegek és hiteles külső hivatkozások.
 
 ## Stack
 
