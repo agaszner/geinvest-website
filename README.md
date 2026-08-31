@@ -19,8 +19,9 @@ The root `index.html` and the per-section entry files (for example `markak/index
 
 ## SEO és keresőbarát oldalak
 
-- A fő témák külön, megosztható URL-t kaptak: `/markak/`, `/szerviz/`, `/referenciak/`, `/kapcsolat/`, `/metso/`, `/mj-recycling/`, `/mfl/` és `/outotec/`.
-- Minden URL-hez magyar nyelvű title, description, canonical és Open Graph metaadat tartozik.
+- A fő témák külön, megosztható magyar URL-t kaptak: `/markak/`, `/szerviz/`, `/referenciak/`, `/kapcsolat/`, `/metso/`, `/mj-recycling/`, `/mfl/` és `/outotec/`.
+- A teljes angol változat az `/en/` alatt érhető el, például `/en/brands/`, `/en/service-retrofit/` és `/en/contact/` címen. A fejléc és a lábléc nyelvváltója mindig az adott oldal magyar vagy angol megfelelőjére mutat.
+- Minden URL-hez saját title, description, canonical, Open Graph és magyar–angol `hreflang` metaadat tartozik.
 - A kezdőoldal LocalBusiness strukturált cégadatot tartalmaz a Geinvest névvel, ikladi címmel, telefonnal és kapcsolati e-maillel.
 - A `public/robots.txt` engedélyezi a feltérképezést és a `public/sitemap.xml` fájlra mutat. Éles build után ezek itt érhetők el: `https://geinvestkft.com/robots.txt` és `https://geinvestkft.com/sitemap.xml`.
 

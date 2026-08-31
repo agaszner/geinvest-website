@@ -25,6 +25,8 @@ footer{min-height:178px;padding:45px clamp(22px,5vw,88px);background:var(--ink);
 /* Final layout overrides for the React multi-page shell. */
 .footer{display:block!important;grid-template-columns:none!important}
 .footer > .container{width:min(1180px,calc(100% - 48px));margin:0 auto}
+
+.language-switch{display:inline-flex;align-items:center;gap:5px;font:11px 'DM Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.45)}.language-switch a{opacity:.58!important;border:0!important;padding:0!important}.language-switch a.active{opacity:1!important;color:#fff}.footer .language-switch{margin-top:8px}
 @media(max-width:850px){.footer{display:block!important}.footer > .container{width:min(100% - 36px,620px)}}
 
 /* Geinvest web materials: Hungarian multi-page content rendered as React views. */
