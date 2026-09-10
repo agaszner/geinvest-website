@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { ArrowRight, ChevronDown, Factory, Hammer, Mail, Menu, PackageCheck, Phone, Send, Settings2, ShieldCheck, Wrench, X } from 'lucide-react'
 import { getAnalyticsConsent, setAnalyticsConsent, startAnalytics } from './analytics'
-import { Locale, Pair, Route, brandHubRoutes, pageHeads, email, faqs, hubGuides, intentLinksFor, intents, meta, origin, parentOf, paths, phone, relatedLabel, siblingOf, structuredData, tx } from './content'
+import { Locale, Pair, Route, brandHubRoutes, pageHeads, structuredDataId, email, faqs, hubGuides, intentLinksFor, intents, meta, origin, parentOf, paths, phone, relatedLabel, siblingOf, structuredData, tx } from './content'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 const prefix = '/geinvest-website'
@@ -27,7 +27,7 @@ function setMeta(attribute: 'name' | 'property', key: string, content: string) {
 function setLink(rel: string, hrefValue: string, hreflang?: string) { const selector = hreflang ? `link[rel="${rel}"][hreflang="${hreflang}"]` : `link[rel="${rel}"]:not([hreflang])`; let element = document.head.querySelector(selector) as HTMLLinkElement | null; if (!element) { element = document.createElement('link'); element.rel = rel; if (hreflang) element.hreflang = hreflang; document.head.appendChild(element) } element.href = hrefValue }
 function updateSeo(route: Route, locale: Locale) { const [title, description] = meta[locale][route]; const canonical = `${origin}${paths[locale][route]}`; document.documentElement.lang = locale; document.title = title; setMeta('name', 'description', description); setMeta('property', 'og:title', title); setMeta('property', 'og:description', description); setMeta('property', 'og:url', canonical); setMeta('property', 'og:type', 'website'); setMeta('property', 'og:image', `${origin}/assets/img/home/metso-quarry.jpg`); setMeta('property', 'og:locale', locale === 'en' ? 'en_US' : 'hu_HU'); setMeta('name', 'twitter:card', 'summary_large_image'); setLink('canonical', canonical); setLink('alternate', `${origin}${paths.hu[route]}`, 'hu'); setLink('alternate', `${origin}${paths.en[route]}`, 'en'); setLink('alternate', `${origin}${paths.hu[route]}`, 'x-default') }
 
-function updateStructuredData(route: Route, locale: Locale) { let script = document.getElementById("geinvest-structured-data") as HTMLScriptElement | null; if (!script) { script = document.createElement("script"); script.id = "geinvest-structured-data"; script.type = "application/ld+json"; document.head.appendChild(script) } script.text = JSON.stringify(structuredData(route, locale)) }
+function updateStructuredData(route: Route, locale: Locale) { let script = document.getElementById(structuredDataId) as HTMLScriptElement | null; if (!script) { script = document.createElement('script'); script.id = structuredDataId; script.type = 'application/ld+json'; document.head.appendChild(script) } script.text = JSON.stringify(structuredData(route, locale)) }
 
 export default function App() {
   const [location, setLocation] = useState(currentLocation)

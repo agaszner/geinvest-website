@@ -252,6 +252,7 @@ export const pageHeads: Record<Route, PageHead> = {
 function intentHead(route: Route): PageHead { const item = intents[route]!; return { kicker: item.kicker, title: item.title, lead: item.lead } }
 
 export const ogImage = `${origin}/assets/img/home/metso-quarry.jpg`
+export const structuredDataId = 'geinvest-structured-data'
 const navRoutes: Route[] = ['home', 'brands', 'service', 'references', 'contact']
 
 /** Schema.org @graph for a page. Shared by the runtime head updater and the build-time HTML injector. */
@@ -261,15 +262,18 @@ export function structuredData(route: Route, locale: Locale): Record<string, unk
   const inLanguage = locale === 'hu' ? 'hu-HU' : 'en'
   const brand = brandOf[route]
   const parent = parentOf[route]
-  const crumbs: Record<string, unknown>[] = [{ '@type': 'ListItem', position: 1, name: locale === 'hu' ? 'Főoldal' : 'Home', item: `${origin}${paths[locale].home}` }]
-  if (parent && brand) crumbs.push({ '@type': 'ListItem', position: 2, name: brand, item: `${origin}${paths[locale][parent]}` })
-  crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name, item: pageUrl })
+  // Home has no hierarchy to express, so it gets no BreadcrumbList rather than a trail pointing at itself.
+  const crumbs: Record<string, unknown>[] = route === 'home' ? [] : [{ '@type': 'ListItem', position: 1, name: locale === 'hu' ? 'Főoldal' : 'Home', item: `${origin}${paths[locale].home}` }]
+  if (crumbs.length && parent && brand) crumbs.push({ '@type': 'ListItem', position: 2, name: brand, item: `${origin}${paths[locale][parent]}` })
+  if (crumbs.length) crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name, item: pageUrl })
+  const webPage: Record<string, unknown> = { '@type': 'WebPage', '@id': `${pageUrl}#webpage`, url: pageUrl, name, description, inLanguage, isPartOf: { '@id': `${origin}/#website` } }
+  if (crumbs.length) webPage.breadcrumb = { '@id': `${pageUrl}#breadcrumb` }
   const graph: Record<string, unknown>[] = [
     { '@type': ['Organization', 'LocalBusiness'], '@id': `${origin}/#organization`, name: 'Geinvest Kft.', url: origin, logo: `${origin}/favicon.png`, telephone: phone, email, address: { '@type': 'PostalAddress', streetAddress: 'Petőfi utca 1/C.', postalCode: '2181', addressLocality: 'Iklad', addressCountry: 'HU' }, areaServed: { '@type': 'Country', name: 'Hungary' } },
     { '@type': 'WebSite', '@id': `${origin}/#website`, url: origin, name: 'Geinvest Kft.', publisher: { '@id': `${origin}/#organization` }, inLanguage: ['hu-HU', 'en'] },
-    { '@type': 'WebPage', '@id': `${pageUrl}#webpage`, url: pageUrl, name, description, inLanguage, isPartOf: { '@id': `${origin}/#website` }, breadcrumb: { '@id': `${pageUrl}#breadcrumb` } },
-    { '@type': 'BreadcrumbList', '@id': `${pageUrl}#breadcrumb`, itemListElement: crumbs },
+    webPage,
   ]
+  if (crumbs.length) graph.push({ '@type': 'BreadcrumbList', '@id': `${pageUrl}#breadcrumb`, itemListElement: crumbs })
   if (brand) graph.push({ '@type': 'Service', '@id': `${pageUrl}#service`, name, description, url: pageUrl, provider: { '@id': `${origin}/#organization` }, areaServed: { '@type': 'Country', name: 'Hungary' }, serviceType: tx(locale, ...serviceTypeOf(route, brand)) })
   const items = faqs[route]
   if (items?.length) graph.push({ '@type': 'FAQPage', '@id': `${pageUrl}#faq`, inLanguage, mainEntity: items.map((item) => ({ '@type': 'Question', name: tx(locale, ...item.q), acceptedAnswer: { '@type': 'Answer', text: tx(locale, ...item.a) } })) })
@@ -299,7 +303,8 @@ export function headTags(route: Route, locale: Locale, depth: number): string {
     `<meta property="og:locale" content="${locale === 'en' ? 'en_US' : 'hu_HU'}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<link rel="icon" type="image/png" href="${favicon}" />`,
-    `<script type="application/ld+json">${JSON.stringify(structuredData(route, locale)).replace(/</g, '\\u003c')}</script>`,
+    // The id lets the client-side route updater replace this node instead of appending a second graph.
+    `<script id="${structuredDataId}" type="application/ld+json">${JSON.stringify(structuredData(route, locale)).replace(/</g, '\\u003c')}</script>`,
   ].join('\n    ')
 }
 
