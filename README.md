@@ -1,6 +1,6 @@
 # Geinvest website
 
-An accessible, static marketing website for **Geinvest Kft.**, designed for GitHub Pages at `geinvestkft.com`. The form posts to a Firebase Cloud Function; it does not expose a Firebase API key, mailbox, or Firestore write permission in the browser.
+An accessible, static marketing website for **Geinvest Kft.**, designed for GitHub Pages at `geinvestkft.com`. The contact form posts directly to [Web3Forms](https://web3forms.com), which emails each enquiry to the Geinvest inbox. There is no backend to deploy or maintain, and the recipient address is never exposed in the browser bundle.
 
 ## Materials ported from `geinvest-web.zip`
 
@@ -31,8 +31,7 @@ The root `index.html` and the per-section entry files (for example `markak/index
 
 - **React + TypeScript + Vite** — fast, small static site.
 - **GitHub Pages + GitHub Actions** — hosting and automatic deployment on pushes to `main`.
-- **Firebase Cloud Functions + Firestore** — validated contact submissions, stored privately.
-- **Firebase Trigger Email extension** — securely emails each enquiry to Geinvest.
+- **Web3Forms** — contact form submissions delivered straight to email, no server required.
 - **PostHog EU** — privacy-conscious analytics, loaded only after visitor consent.
 
 ## Run locally
@@ -45,59 +44,39 @@ cp .env.example .env
 npm run dev
 ```
 
-The contact form intentionally displays a configuration error until `VITE_CONTACT_ENDPOINT` is set. Never put `CONTACT_EMAIL` or other private credentials in `.env` for the frontend.
+The contact form intentionally displays a configuration error until `VITE_WEB3FORMS_KEY` is set. Because the site is fully static, the form works identically on `localhost` and in production, so you can test it end to end before deploying.
 
-## 1. Create and configure Firebase
+## 1. Set up the contact form
 
-1. Create a Firebase project in the Firebase console. Choose the **Blaze** plan: Cloud Functions and the email extension require it. Use a project region in Europe; this project uses the `europe-west1` function region.
-2. Install the Firebase CLI and authenticate:
-
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   cp .firebaserc.example .firebaserc
-   # Edit .firebaserc and replace your-firebase-project-id.
-   ```
-
-3. Install the function dependencies and set the recipient inbox. This Firebase secret is only available to the Cloud Function at runtime.
-
-   ```bash
-   cd functions
-   npm install
-   cd ..
-   firebase functions:secrets:set CONTACT_EMAIL
-   ```
-
-4. In Firebase Extensions, install **Trigger Email** (`firebase/firestore-send-email`). Use `mail` as the collection name. Configure its SMTP connection for an inbox you control (Google Workspace, Microsoft 365, Mailgun, etc.). The extension will send a message whenever the function writes a `mail` document.
-5. Deploy the secure backend and Firestore rules:
-
-   ```bash
-   cd functions && npm run build && cd ..
-   firebase deploy --only functions,firestore:rules
-   ```
-
-6. Copy the public HTTPS URL Firebase prints for the `contact` function. It has the form:
+1. Go to [web3forms.com](https://web3forms.com) and enter the inbox that should receive enquiries (for example `info@geinvestkft.com`).
+2. Confirm the verification email Web3Forms sends to that address. Enquiries only ever go to this verified inbox.
+3. Copy the access key you receive and put it in `.env`:
 
    ```text
-   https://europe-west1-YOUR_PROJECT_ID.cloudfunctions.net/contact
+   VITE_WEB3FORMS_KEY=your-access-key
    ```
 
-### Important Firebase security notes
+4. Run `npm run dev`, submit the form, and check the inbox. Replies go straight back to the visitor because their address is set as the reply-to.
 
-- Firestore rules deny all browser access. Only the server-side Cloud Function can create `contacts` or `mail` documents.
-- The function validates input, limits field size, requires privacy consent, only allows POSTs from `geinvestkft.com` / `www.geinvestkft.com`, and includes an invisible honeypot to reduce basic spam.
-- After the domain is live, use Firebase App Check with reCAPTCHA Enterprise and add a rate-limiting service if the form receives abuse. This is an appropriate next layer once real traffic exists.
+No account dashboard, billing, or deployment step is involved. To change the recipient later, register the new address and swap the key.
+
+### Contact form notes
+
+- The access key is public by design and safe to ship in the browser bundle. It only permits delivery to the verified inbox, so it cannot be used to send mail elsewhere or to read past submissions.
+- The form keeps an invisible honeypot field (`website`) plus the Web3Forms `botcheck` field to filter basic spam bots.
+- The free tier covers 250 submissions per month, which is far above expected volume for this site. Web3Forms emails you as the limit approaches.
+- Submissions are not stored in your own database any more. Email is the record. Keep enquiries archived in the inbox, or add a Web3Forms webhook later if you want a copy elsewhere.
 
 ## 2. Configure PostHog
 
 1. Create a PostHog project in the EU cloud and copy its project API key.
 2. In the GitHub repository go to **Settings → Secrets and variables → Actions → Variables**.
-3. Add these repository variables (variables are correct because the PostHog key and function URL are intentionally public browser configuration):
+3. Add these repository variables (variables rather than secrets is correct, because the PostHog key and the Web3Forms access key are intentionally public browser configuration):
 
    | Variable | Value |
    | --- | --- |
    | `VITE_POSTHOG_KEY` | Your PostHog project API key |
-   | `VITE_CONTACT_ENDPOINT` | Your deployed Firebase function URL |
+   | `VITE_WEB3FORMS_KEY` | Your Web3Forms access key |
 
 PostHog does not load unless a visitor chooses “Accept analytics”. The site does not identify visitors or record form fields. Configure the PostHog project’s data region and retention policy to fit Geinvest’s privacy requirements.
 
@@ -116,10 +95,10 @@ Open `https://github.com/agaszner/geinvest-website/settings/pages` while signed 
 ## Before launch checklist
 
 - Replace the placeholder company claims, service descriptions, working hours, and location with Geinvest’s confirmed details.
-- Submit a real form enquiry and verify it appears in Firestore and arrives in the configured inbox.
+- Submit a real form enquiry on the live domain and verify it arrives in the configured inbox, including checking the spam folder on the first send.
 - Add the final legal company details, privacy contact, and data-retention period to the privacy copy after getting local legal guidance.
 - Confirm the custom domain, HTTPS, PostHog consent behavior, and mobile layout.
-- Set a budget alert in Google Cloud / Firebase and restrict who can deploy functions or edit GitHub Actions variables.
+- Restrict who can edit GitHub Actions variables, and confirm `VITE_WEB3FORMS_KEY` is set in the repository variables so production builds include it.
 
 ## Commands
 
@@ -127,5 +106,4 @@ Open `https://github.com/agaszner/geinvest-website/settings/pages` while signed 
 npm run dev       # develop the website
 npm run build     # production build
 npm run lint      # lint website code
-cd functions && npm run build  # compile the Firebase function
 ```
