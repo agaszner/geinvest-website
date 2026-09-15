@@ -1,0 +1,14 @@
+// Static-assets-only Worker. Committing this file stops `wrangler deploy` from auto-configuring the
+// project (which injects @cloudflare/vite-plugin and rebuilds, breaking the SSR prerender step).
+// Cloudflare runs `npm run build` first; this only uploads the finished dist/.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "geinvest-website",
+  "compatibility_date": "2026-09-15",
+  "assets": {
+    "directory": "./dist",
+    // Every page is a real prerendered file, so unknown URLs should be a true 404 rather than the home page.
+    "not_found_handling": "none",
+    "html_handling": "auto-trailing-slash"
+  }
+}

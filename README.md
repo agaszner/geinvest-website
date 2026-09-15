@@ -1,6 +1,6 @@
 # Geinvest website
 
-An accessible, static marketing website for **Geinvest Kft.**, hosted on Cloudflare Pages at `geinvestkft.com`. The contact form posts directly to [Web3Forms](https://web3forms.com), which emails each enquiry to the Geinvest inbox. There is no backend to deploy or maintain, and the recipient address is never exposed in the browser bundle.
+An accessible, static marketing website for **Geinvest Kft.**, hosted as a static-assets Cloudflare Worker at `geinvestkft.com`. The contact form posts directly to [Web3Forms](https://web3forms.com), which emails each enquiry to the Geinvest inbox. There is no backend to deploy or maintain, and the recipient address is never exposed in the browser bundle.
 
 ## Materials ported from `geinvest-web.zip`
 
@@ -32,7 +32,7 @@ The root `index.html` and the per-section entry files (for example `markak/index
 ## Stack
 
 - **React + TypeScript + Vite** — fast, small static site.
-- **Cloudflare Pages** — hosting; builds and deploys automatically on every push to GitHub.
+- **Cloudflare Workers (static assets) + Workers Builds** — hosting; builds and deploys automatically on every push to GitHub.
 - **Web3Forms** — contact form submissions delivered straight to email, no server required.
 - **PostHog EU** — privacy-conscious analytics, downloaded and started only after visitor consent.
 - **sharp** — generates responsive WebP image variants at build time.
@@ -80,17 +80,19 @@ PostHog does not load unless a visitor chooses “Accept analytics”. The site 
 
 Each form email also names the page it was sent from (`page` and `page_url` fields, and in the subject line).
 
-## 3. Cloudflare Pages
+## 3. Cloudflare deployment
 
-The Cloudflare Pages project is connected to the GitHub repository and deploys every push.
+The site is a static-assets-only Cloudflare Worker (`geinvest-website`) connected to the GitHub repository through Workers Builds, so every push deploys.
 
 | Setting | Value |
 | --- | --- |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
 | Node version | from `.node-version` (22) |
 
-Under **Settings → Variables and Secrets**, set these as plain variables (they are public browser configuration by design, not secrets):
+`wrangler.jsonc` tells wrangler to upload `dist/` as static assets. Keep it committed: without it, `wrangler deploy` auto-configures the project, injects `@cloudflare/vite-plugin` and rebuilds, which breaks the prerender step.
+
+The `VITE_*` values are read at **build** time, so set them under the Worker's **Settings → Build → Variables and secrets** (plain variables; they are public browser configuration by design):
 
 | Variable | Value |
 | --- | --- |
@@ -98,7 +100,7 @@ Under **Settings → Variables and Secrets**, set these as plain variables (they
 | `VITE_POSTHOG_KEY` | Your PostHog project API key |
 | `VITE_POSTHOG_HOST` | `https://eu.i.posthog.com` |
 
-`public/_headers` tells Cloudflare to cache the hashed bundles in `/_app/` and the generated images in `/assets/img/_opt/` for a year; HTML is always revalidated, so deploys show up immediately.
+`public/_headers` caches the hashed bundles in `/_app/` and the generated images in `/assets/img/_opt/` for a year; HTML is always revalidated, so deploys show up immediately. Unknown URLs return a real 404.
 
 After a deploy that changes URLs, resubmit `https://geinvestkft.com/sitemap.xml` in Google Search Console.
 
@@ -108,7 +110,7 @@ After a deploy that changes URLs, resubmit `https://geinvestkft.com/sitemap.xml`
 - Submit a real form enquiry on the live domain and verify it arrives in the configured inbox, including checking the spam folder on the first send.
 - Add the final legal company details, privacy contact, and data-retention period to the privacy copy after getting local legal guidance.
 - Confirm the custom domain, HTTPS, PostHog consent behavior, and mobile layout.
-- Confirm `VITE_WEB3FORMS_KEY` is set in the Cloudflare Pages variables so production builds include it.
+- Confirm `VITE_WEB3FORMS_KEY` is set in the Worker's build variables so production builds include it.
 
 ## Commands
 

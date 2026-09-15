@@ -11,3 +11,4 @@ dist-ssr
 public/assets/img/_opt
 src/generated
 /docs/*
+.wrangler
