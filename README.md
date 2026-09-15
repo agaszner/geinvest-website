@@ -1,6 +1,6 @@
 # Geinvest website
 
-An accessible, static marketing website for **Geinvest Kft.**, designed for GitHub Pages at `geinvestkft.com`. The contact form posts directly to [Web3Forms](https://web3forms.com), which emails each enquiry to the Geinvest inbox. There is no backend to deploy or maintain, and the recipient address is never exposed in the browser bundle.
+An accessible, static marketing website for **Geinvest Kft.**, hosted on Cloudflare Pages at `geinvestkft.com`. The contact form posts directly to [Web3Forms](https://web3forms.com), which emails each enquiry to the Geinvest inbox. There is no backend to deploy or maintain, and the recipient address is never exposed in the browser bundle.
 
 ## Materials ported from `geinvest-web.zip`
 
@@ -13,9 +13,9 @@ The supplied Hungarian source material has been incorporated into the React appl
 
 Before publishing, confirm reuse permission for the supplied Metso, M&J, and ifm images with the relevant partner/manufacturer terms. Also verify the exact contractual scope of the M&J and Outotec representation claims, and only publish an MFL product list when you have a primary MFL catalogue or equivalent documentation.
 
-The added missing-brand visuals are real downloaded images, not generated placeholders: the Outotec image is from [Metso’s particle ore sorting page](https://www.metso.com/portfolio/sensor-based-ore-sorting/), and the MFL supporting crusher image is [“Mine rock crusher” on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Mine_rock_crusher.jpg). Confirm current reuse terms and retain the corresponding attribution before launch.
+The added missing-brand visuals are real downloaded images, not generated placeholders: the Outotec image is from [Metso’s particle ore sorting page](https://www.metso.com/portfolio/sensor-based-ore-sorting/), and the MFL supporting crusher image is [“Mine rock crusher” on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Mine_rock_crusher.jpg). Every image's source and licence is tracked in [`docs/image-credits.md`](docs/image-credits.md); images that require attribution are credited in the site footer.
 
-The root `index.html` and the per-section entry files (for example `markak/index.html` and `szerviz/index.html`) provide crawlable metadata and real URLs. The visible page content and navigation are rendered by React components in `src/App.tsx`.
+The root `index.html` and the per-section entry files (for example `markak/index.html` and `szerviz/index.html`) provide real URLs. At build time every page is prerendered: its SEO head tags are injected from `src/content.ts` and the React components in `src/App.tsx` are rendered to full HTML, which the browser then hydrates.
 
 ## SEO és keresőbarát oldalak
 
@@ -23,16 +23,19 @@ The root `index.html` and the per-section entry files (for example `markak/index
 - A teljes angol változat az `/en/` alatt érhető el, például `/en/brands/`, `/en/service-retrofit/` és `/en/contact/` címen. A fejléc és a lábléc nyelvváltója mindig az adott oldal magyar vagy angol megfelelőjére mutat.
 - Minden URL-hez saját title, description, canonical, Open Graph és magyar–angol `hreflang` metaadat tartozik.
 - A kezdőoldal LocalBusiness strukturált cégadatot tartalmaz a Geinvest névvel, ikladi címmel, telefonnal és kapcsolati e-maillel.
-- A `public/robots.txt` engedélyezi a feltérképezést és a `public/sitemap.xml` fájlra mutat. Éles build után ezek itt érhetők el: `https://geinvestkft.com/robots.txt` és `https://geinvestkft.com/sitemap.xml`.
+- Minden oldal build közben teljes HTML-ként előre renderelődik, így a Google JavaScript nélkül is látja a teljes tartalmat.
+- A még helykitöltő tartalmú oldalak (jelenleg a Referenciák) a `src/content.ts` `unpublishedRoutes` listájában vannak: elérhetők, de `noindex` jelölést kapnak, és kimaradnak a menüből és a sitemapből. Ha valódi tartalom kerül rájuk, töröld őket a listából.
+- A `public/robots.txt` engedélyezi a feltérképezést és a sitemapre mutat, amelyet a build generál a `dist/sitemap.xml` fájlba. Éles build után ezek itt érhetők el: `https://geinvestkft.com/robots.txt` és `https://geinvestkft.com/sitemap.xml`.
 
 Élesítés után add hozzá a domaint a [Google Search Console](https://search.google.com/search-console) felületén, végezd el a DNS-es tulajdon-ellenőrzést, majd a **Sitemaps** résznél küldd be a `https://geinvestkft.com/sitemap.xml` címet. Az URL Inspection eszközzel külön is kérhetsz indexelést az új vagy módosított oldalakra. A sitemap és az indexelési kérés jelzés a Google felé; a helyezést nem garantálják, ezért a legnagyobb hatású további lépések a saját projektfotók, konkrét referenciák, hasznos magyar nyelvű szövegek és hiteles külső hivatkozások.
 
 ## Stack
 
 - **React + TypeScript + Vite** — fast, small static site.
-- **GitHub Pages + GitHub Actions** — hosting and automatic deployment on pushes to `main`.
+- **Cloudflare Pages** — hosting; builds and deploys automatically on every push to GitHub.
 - **Web3Forms** — contact form submissions delivered straight to email, no server required.
-- **PostHog EU** — privacy-conscious analytics, loaded only after visitor consent.
+- **PostHog EU** — privacy-conscious analytics, downloaded and started only after visitor consent.
+- **sharp** — generates responsive WebP image variants at build time.
 
 ## Run locally
 
@@ -43,6 +46,8 @@ npm install
 cp .env.example .env
 npm run dev
 ```
+
+Drop new JPG or PNG images into `public/assets/img/` and reference them with `<Img src="assets/img/..." />`; `npm run dev` and `npm run build` generate resized WebP variants automatically.
 
 The contact form intentionally displays a configuration error until `VITE_WEB3FORMS_KEY` is set. Because the site is fully static, the form works identically on `localhost` and in production, so you can test it end to end before deploying.
 
@@ -69,28 +74,33 @@ No account dashboard, billing, or deployment step is involved. To change the rec
 
 ## 2. Configure PostHog
 
-1. Create a PostHog project in the EU cloud and copy its project API key.
-2. In the GitHub repository go to **Settings → Secrets and variables → Actions → Variables**.
-3. Add these repository variables (variables rather than secrets is correct, because the PostHog key and the Web3Forms access key are intentionally public browser configuration):
+Create a PostHog project in the EU cloud and copy its project API key into `VITE_POSTHOG_KEY` (locally in `.env`, in production in Cloudflare, see below).
 
-   | Variable | Value |
-   | --- | --- |
-   | `VITE_POSTHOG_KEY` | Your PostHog project API key |
-   | `VITE_WEB3FORMS_KEY` | Your Web3Forms access key |
+PostHog does not load unless a visitor chooses “Accept analytics”. The site does not identify visitors or record form fields. With consent, it records page views plus `call_click`, `email_click` and `form_submit` events tagged with the page, so you can see which pages produce enquiries. Configure the PostHog project’s data region and retention policy to fit Geinvest’s privacy requirements.
 
-PostHog does not load unless a visitor chooses “Accept analytics”. The site does not identify visitors or record form fields. Configure the PostHog project’s data region and retention policy to fit Geinvest’s privacy requirements.
+Each form email also names the page it was sent from (`page` and `page_url` fields, and in the subject line).
 
-## 3. Publish with GitHub Pages
+## 3. Cloudflare Pages
 
-1. Create a new GitHub repository and push this folder. The deploy workflow runs for pushes to `main` and `master`.
-2. In **Settings → Pages**, set **Source** to **GitHub Actions**. Push to `master` (your current branch) or `main`; the workflow builds and deploys the website.
-3. In **Settings → Pages → Custom domain**, enter `geinvestkft.com` and enable **Enforce HTTPS** once it is available. The `public/CNAME` file ensures deployment keeps the custom domain.
-4. At the domain registrar, point the apex domain and `www` at GitHub Pages. GitHub shows the current IP/record values for your repository; follow its displayed instructions exactly, since these can change. Add the GitHub-provided verification TXT record if requested.
-5. Wait for DNS propagation, then test both `https://geinvestkft.com` and `https://www.geinvestkft.com`. Choose one as the canonical address in GitHub Pages; GitHub redirects the other.
+The Cloudflare Pages project is connected to the GitHub repository and deploys every push.
 
-### If the page is blank
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node version | from `.node-version` (22) |
 
-Open `https://github.com/agaszner/geinvest-website/settings/pages` while signed in and check **Build and deployment → Source**. It must be **GitHub Actions**, not **Deploy from a branch**. The workflow builds `dist/`; publishing the repository branch directly serves the uncompiled React source and results in a blank page. After changing the source, rerun **Deploy website to GitHub Pages** from the Actions tab and open `https://agaszner.github.io/geinvest-website/` (including `/geinvest-website/`). The account root `https://agaszner.github.io/` is a different user-site address and will not serve this repository unless you create a repository named `agaszner.github.io`.
+Under **Settings → Variables and Secrets**, set these as plain variables (they are public browser configuration by design, not secrets):
+
+| Variable | Value |
+| --- | --- |
+| `VITE_WEB3FORMS_KEY` | Your Web3Forms access key |
+| `VITE_POSTHOG_KEY` | Your PostHog project API key |
+| `VITE_POSTHOG_HOST` | `https://eu.i.posthog.com` |
+
+`public/_headers` tells Cloudflare to cache the hashed bundles in `/_app/` and the generated images in `/assets/img/_opt/` for a year; HTML is always revalidated, so deploys show up immediately.
+
+After a deploy that changes URLs, resubmit `https://geinvestkft.com/sitemap.xml` in Google Search Console.
 
 ## Before launch checklist
 
@@ -98,12 +108,14 @@ Open `https://github.com/agaszner/geinvest-website/settings/pages` while signed 
 - Submit a real form enquiry on the live domain and verify it arrives in the configured inbox, including checking the spam folder on the first send.
 - Add the final legal company details, privacy contact, and data-retention period to the privacy copy after getting local legal guidance.
 - Confirm the custom domain, HTTPS, PostHog consent behavior, and mobile layout.
-- Restrict who can edit GitHub Actions variables, and confirm `VITE_WEB3FORMS_KEY` is set in the repository variables so production builds include it.
+- Confirm `VITE_WEB3FORMS_KEY` is set in the Cloudflare Pages variables so production builds include it.
 
 ## Commands
 
 ```bash
-npm run dev       # develop the website
-npm run build     # production build
+npm run dev       # develop the website (generates image variants first)
+npm run build     # type-check, build, prerender every page into dist/
+npm run check     # after a build: verify prerendering, images, SEO rules and caching
+npm run images    # regenerate WebP variants and src/generated/images.json
 npm run lint      # lint website code
 ```

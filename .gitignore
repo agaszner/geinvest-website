@@ -5,3 +5,8 @@ dist
 !.env.example
 .idea
 .DS_Store
+CLAUDE.md
+TODO-apa.md
+dist-ssr
+public/assets/img/_opt
+src/generated

@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { headTags, origin, paths, staticBody, type Locale, type Route } from './src/content'
+import { headTags, origin, paths, unpublishedRoutes, type Locale, type Route } from './src/content'
 
 const locales: Locale[] = ['hu', 'en']
 
@@ -13,8 +13,8 @@ const pages = locales.flatMap((locale) => (Object.entries(paths[locale]) as [Rou
 const pagesByDepth = [...pages].sort((a, b) => b.file.length - a.file.length)
 
 /**
- * Injects per-page SEO head tags, JSON-LD and crawlable static content into each HTML entry, and
- * emits the sitemap. Driven by src/content.ts so the markup cannot drift from the rendered page.
+ * Injects per-page SEO head tags and JSON-LD into each HTML entry, and emits the sitemap. The page body
+ * itself is prerendered afterwards by scripts/prerender.js. Driven by src/content.ts so the head cannot drift from the page.
  */
 /** Replaces a required template marker, failing loudly rather than silently skipping SEO injection. */
 function injectAt(html: string, marker: string, replacement: string, file: string) {
@@ -28,7 +28,8 @@ function geinvestSeo(): Plugin {
   const injected = new Set<string>()
   return {
     name: 'geinvest-seo',
-    configResolved(config) { isBuild = config.command === 'build' },
+    // The SSR bundle used for prerendering has no HTML entries, so it must skip injection checks and the sitemap.
+    configResolved(config) { isBuild = config.command === 'build' && !config.build.ssr },
     transformIndexHtml: {
       order: 'pre',
       handler(html, ctx) {
@@ -40,7 +41,7 @@ function geinvestSeo(): Plugin {
           injected.add(page.file)
           let result = injectAt(html, '<html>', `<html lang="${page.locale}">`, page.file)
           result = injectAt(result, '</head>', `  ${headTags(page.route, page.locale, page.depth)}\n  </head>`, page.file)
-          return injectAt(result, '<div id="root"></div>', `<div id="root">\n      ${staticBody(page.route, page.locale)}\n    </div>`, page.file)
+          return result
         } catch (error) {
           // Vite closes the bundle even after a failure; this stops the completeness check masking the real cause.
           injectionFailed = true
@@ -49,7 +50,8 @@ function geinvestSeo(): Plugin {
       },
     },
     generateBundle() {
-      const urls = pages.map((page) => `  <url><loc>${origin}${paths[page.locale][page.route]}</loc></url>`).join('\n')
+      if (!isBuild) return
+      const urls = pages.filter((page) => !unpublishedRoutes.includes(page.route)).map((page) => `  <url><loc>${origin}${paths[page.locale][page.route]}</loc></url>`).join('\n')
       this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n` })
     },
     closeBundle() {
@@ -62,9 +64,10 @@ function geinvestSeo(): Plugin {
 
 export default defineConfig({
   plugins: [react(), geinvestSeo()],
-  // Relative assets work on both a GitHub project page and geinvestkft.com.
-  base: './',
+  base: '/',
   build: {
+    // Hashed bundles live apart from unhashed public images so public/_headers can cache them forever.
+    assetsDir: '_app',
     sourcemap: true,
     rollupOptions: {
       input: Object.fromEntries(pages.map((page) => [page.name, page.file])),

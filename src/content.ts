@@ -139,6 +139,8 @@ export const faqs: Partial<Record<Route, Faq[]>> = {
 export const brandOf: Partial<Record<Route, string>> = { metso: 'Metso', mj: 'M&J Recycling', mfl: 'MFL', outotec: 'Outotec', metsoService: 'Metso', metsoParts: 'Metso', mjService: 'M&J Recycling', mjParts: 'M&J Recycling', mflService: 'MFL', mflParts: 'MFL', outotecService: 'Outotec', outotecParts: 'Outotec' }
 export const parentOf: Partial<Record<Route, Route>> = { metsoService: 'metso', metsoParts: 'metso', mjService: 'mj', mjParts: 'mj', mflService: 'mfl', mflParts: 'mfl', outotecService: 'outotec', outotecParts: 'outotec' }
 export const brandHubRoutes: Route[] = ['metso', 'mj', 'mfl', 'outotec']
+/** Routes that still hold placeholder content: reachable, but kept out of navigation, the sitemap and Google's index. Remove a route once it has real content. */
+export const unpublishedRoutes: Route[] = ['references']
 export const partsRoutes: Route[] = ['metsoParts', 'mjParts', 'mflParts', 'outotecParts']
 export const serviceRoutes: Route[] = ['metsoService', 'mjService', 'mflService', 'outotecService']
 export function serviceTypeOf(route: Route, brand: string): Pair {
@@ -251,9 +253,8 @@ export const pageHeads: Record<Route, PageHead> = {
 }
 function intentHead(route: Route): PageHead { const item = intents[route]!; return { kicker: item.kicker, title: item.title, lead: item.lead } }
 
-export const ogImage = `${origin}/assets/img/home/metso-quarry.jpg`
+export const ogImage = `${origin}/assets/img/home/lokotrack-lt200hp-cone-plant.jpg`
 export const structuredDataId = 'geinvest-structured-data'
-const navRoutes: Route[] = ['home', 'brands', 'service', 'references', 'contact']
 
 /** Schema.org @graph for a page. Shared by the runtime head updater and the build-time HTML injector. */
 export function structuredData(route: Route, locale: Locale): Record<string, unknown> {
@@ -289,6 +290,7 @@ export function headTags(route: Route, locale: Locale, depth: number): string {
   const canonical = `${origin}${paths[locale][route]}`
   const favicon = `${'../'.repeat(depth) || './'}favicon.png`
   return [
+    ...(unpublishedRoutes.includes(route) ? ['<meta name="robots" content="noindex, follow" />'] : []),
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
     `<link rel="canonical" href="${canonical}" />`,
@@ -303,36 +305,6 @@ export function headTags(route: Route, locale: Locale, depth: number): string {
     `<meta property="og:locale" content="${locale === 'en' ? 'en_US' : 'hu_HU'}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<link rel="icon" type="image/png" href="${favicon}" />`,
-    // The id lets the client-side route updater replace this node instead of appending a second graph.
     `<script id="${structuredDataId}" type="application/ld+json">${JSON.stringify(structuredData(route, locale)).replace(/</g, '\\u003c')}</script>`,
   ].join('\n    ')
-}
-
-/**
- * Crawlable page content placed inside #root. React clears the container on mount, so this is a
- * no-JS fallback and a complete copy of the page's key text for crawlers that do not execute JS.
- */
-export function staticBody(route: Route, locale: Locale): string {
-  const t = (pair: Pair) => esc(tx(locale, ...pair))
-  const head = pageHeads[route]
-  const intent = intents[route]
-  const guide = hubGuides[route]
-  const items = faqs[route]
-  const parts: string[] = [`<div class="page-head"><div class="container"><p class="kicker">${t(head.kicker)}</p><h1>${t(head.title).replace('|', '<br />')}</h1><p>${t(head.lead)}</p></div></div>`]
-  const body: string[] = []
-  if (intent) {
-    body.push(`<h2>${t(intent.listTitle)}</h2><ul>${intent.bullets.map((bullet) => `<li>${t(bullet)}</li>`).join('')}</ul>`)
-    body.push(intent.body.map((block) => `<h2>${t(block.h)}</h2><p>${t(block.p)}</p>`).join(''))
-    if (intent.note) body.push(`<p>${t(intent.note)}</p>`)
-  }
-  if (guide) {
-    body.push(`<h2>${tx(locale, 'Szerviz, alkatrész és műszaki támogatás', 'Service, parts and technical support')}</h2><p>${t(guide.applications)}</p>`)
-    body.push(`<h2>${tx(locale, 'Miben tudunk segíteni?', 'How we can help')}</h2><ul>${guide.services.map((service) => `<li>${t(service)}</li>`).join('')}</ul>`)
-  }
-  if (!intent && !guide) body.push(`<p>${esc(meta[locale][route][1])}</p>`)
-  if (items?.length) body.push(`<h2>${tx(locale, 'Gyakori kérdések', 'Frequently asked questions')}</h2>${items.map((item) => `<h3>${t(item.q)}</h3><p>${t(item.a)}</p>`).join('')}`)
-  const links = [...new Set([...navRoutes, ...(intentsOf[route] ?? []), ...(parentOf[route] ? [parentOf[route]!] : []), ...(siblingOf[route] ? [siblingOf[route]!] : []), ...brandHubRoutes])].filter((item) => item !== route)
-  body.push(`<h2>${tx(locale, 'Oldalak', 'Pages')}</h2><ul>${links.map((item) => `<li><a href="${paths[locale][item]}">${esc(meta[locale][item][0].split(' | ')[0])}</a></li>`).join('')}</ul>`)
-  parts.push(`<div class="section"><div class="container prose">${body.join('')}</div></div>`)
-  return parts.join('\n      ')
 }
